@@ -1,17 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 function GenreModal({ isOpen, onClose, onSave, isSaving, genre, title, submitLabel }) {
-  const [descricao, setDescricao] = useState('')
-
-  useEffect(() => {
-    if (isOpen) {
-      setDescricao(genre?.descricao || '')
-    }
-  }, [genre, isOpen])
-
   if (!isOpen) {
     return null
   }
+
+  return (
+    <GenreModalContent
+      key={genre?.id || 'create'}
+      onClose={onClose}
+      onSave={onSave}
+      isSaving={isSaving}
+      genre={genre}
+      title={title}
+      submitLabel={submitLabel}
+    />
+  )
+}
+
+function GenreModalContent({ onClose, onSave, isSaving, genre, title, submitLabel }) {
+  const [descricao, setDescricao] = useState(() => genre?.descricao || '')
 
   const handleSubmit = (event) => {
     event.preventDefault()

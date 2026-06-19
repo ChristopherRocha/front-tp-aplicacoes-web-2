@@ -2,6 +2,9 @@ import { useRef } from 'react'
 import MovieCard from '../components/MovieCard'
 
 function HomePage({ filmes, generos, loading, error, generoById, getImageUrl }) {
+  const recentRowRef = useRef(null)
+  const genreRowRefs = useRef({})
+
   if (loading) {
     return <p className="status">Carregando filmes...</p>
   }
@@ -17,9 +20,6 @@ function HomePage({ filmes, generos, loading, error, generoById, getImageUrl }) 
   const recentMovies = [...filmes]
     .sort((a, b) => (b.id || 0) - (a.id || 0))
     .slice(0, 6)
-
-  const recentRowRef = useRef(null)
-  const genreRowRefs = useRef({})
 
   const scrollRow = (row, direction) => {
     if (!row) {

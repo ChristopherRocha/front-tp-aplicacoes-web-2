@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 const emptyForm = {
   titulo: '',
@@ -8,6 +8,24 @@ const emptyForm = {
   isUrl: true,
   hasNewFile: false,
   generoId: '',
+}
+
+const getInitialFormData = (movie) => {
+  if (!movie) {
+    return {
+      ...emptyForm,
+    }
+  }
+
+  return {
+    titulo: movie.titulo || '',
+    descricao: movie.descricao || '',
+    foto: movie.foto || '',
+    fotoBinaria: '',
+    isUrl: Boolean(movie.isUrl),
+    hasNewFile: false,
+    generoId: movie.generoId ? String(movie.generoId) : '',
+  }
 }
 
 function EditMovieModal({
@@ -20,36 +38,34 @@ function EditMovieModal({
   title = 'Atualizar filme',
   submitLabel = 'Salvar alteracoes',
 }) {
-  const [formData, setFormData] = useState({
-    ...emptyForm,
-  })
-
-  useEffect(() => {
-    if (!isOpen) {
-      return
-    }
-
-    if (movie) {
-      setFormData({
-        titulo: movie.titulo || '',
-        descricao: movie.descricao || '',
-        foto: movie.foto || '',
-        fotoBinaria: '',
-        isUrl: Boolean(movie.isUrl),
-        hasNewFile: false,
-        generoId: movie.generoId ? String(movie.generoId) : '',
-      })
-      return
-    }
-
-    setFormData({
-      ...emptyForm,
-    })
-  }, [isOpen, movie])
-
   if (!isOpen) {
     return null
   }
+
+  return (
+    <EditMovieModalContent
+      key={movie?.id || 'create'}
+      movie={movie}
+      generos={generos}
+      onClose={onClose}
+      onSave={onSave}
+      isSaving={isSaving}
+      title={title}
+      submitLabel={submitLabel}
+    />
+  )
+}
+
+function EditMovieModalContent({
+  movie,
+  generos,
+  onClose,
+  onSave,
+  isSaving,
+  title,
+  submitLabel,
+}) {
+  const [formData, setFormData] = useState(() => getInitialFormData(movie))
 
   const handleChange = (event) => {
     const { name, value } = event.target

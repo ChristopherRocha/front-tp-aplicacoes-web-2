@@ -12,7 +12,21 @@
 .app-navbar-list {
   font-size: 1.1rem;
   gap: 3rem;
-  margin-right: 10%;
+  margin-right: 2rem;
+}
+
+.app-auth-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.app-auth-user {
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .app-navbar .nav-link {
@@ -45,5 +59,14 @@
   .app-navbar-list {
     gap: 2rem;
     margin-right: 0;
+  }
+
+  .app-navbar .container-xxl {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .app-auth-actions {
+    margin-left: auto;
   }
 }

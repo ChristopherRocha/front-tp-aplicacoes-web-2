@@ -11,9 +11,19 @@ import HomePage from './pages/HomePage'
 import MoviesPage from './pages/MoviesPage'
 import GenresPage from './pages/GenresPage'
 
-const API_BASE_URL = 'http://localhost:3000'
+const AUTH_STORAGE_KEY = 'movie-rar-auth'
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://back-aplicacoes-web-2.onrender.com')
+  .replace(/\/$/, '')
 
 function App() {
+  const [auth, setAuth] = useState(() => {
+    try {
+      const storedAuth = localStorage.getItem(AUTH_STORAGE_KEY)
+      return storedAuth ? JSON.parse(storedAuth) : null
+    } catch {
+      return null
+    }
+  })
   const [filmes, setFilmes] = useState([])
   const [generos, setGeneros] = useState([])
   const [loading, setLoading] = useState(true)
@@ -28,15 +38,136 @@ function App() {
   const [isGenreModalOpen, setIsGenreModalOpen] = useState(false)
   const [isSavingGenre, setIsSavingGenre] = useState(false)
   const [deletingGenreId, setDeletingGenreId] = useState(null)
+  const authToken = auth?.token || ''
 
   const api = useMemo(() => {
     return axios.create({
       baseURL: API_BASE_URL,
       headers: {
         'Content-Type': 'application/json',
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
       },
     })
-  }, [])
+  }, [authToken])
+
+  const saveAuthSession = (session) => {
+    if (!session?.token || !session?.user) {
+      return
+    }
+
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session))
+    setAuth(session)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem(AUTH_STORAGE_KEY)
+    setAuth(null)
+  }
+
+  const getAxiosMessage = (requestError, fallback) => {
+    if (axios.isAxiosError(requestError)) {
+      return requestError.response?.data?.error || requestError.message || fallback
+    }
+
+    return requestError.message || fallback
+  }
+
+  const handleAuth = async (mode = 'login') => {
+    const isRegister = mode === 'register'
+    const result = await Swal.fire({
+      title: isRegister ? 'Criar conta' : 'Entrar',
+      html: `
+        ${isRegister ? '<input id="auth-name" class="swal2-input" placeholder="Nome">' : ''}
+        <input id="auth-email" class="swal2-input" type="email" placeholder="Email">
+        <input id="auth-password" class="swal2-input" type="password" placeholder="Password">
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      showDenyButton: true,
+      confirmButtonText: isRegister ? 'Criar conta' : 'Entrar',
+      denyButtonText: isRegister ? 'Ja tenho conta' : 'Criar conta',
+      cancelButtonText: 'Cancelar',
+      preConfirm: () => {
+        const nome = document.getElementById('auth-name')?.value.trim()
+        const email = document.getElementById('auth-email')?.value.trim()
+        const password = document.getElementById('auth-password')?.value
+
+        if (isRegister && !nome) {
+          Swal.showValidationMessage('Informe o nome.')
+          return false
+        }
+
+        if (!email || !password) {
+          Swal.showValidationMessage('Informe email e password.')
+          return false
+        }
+
+        return isRegister ? { nome, email, password } : { email, password }
+      },
+    })
+
+    if (result.isDenied) {
+      return handleAuth(isRegister ? 'login' : 'register')
+    }
+
+    if (!result.isConfirmed || !result.value) {
+      return null
+    }
+
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/auth/${isRegister ? 'register' : 'login'}`,
+        result.value,
+        { headers: { 'Content-Type': 'application/json' } },
+      )
+      const session = {
+        token: response.data.token,
+        user: response.data.user,
+      }
+
+      saveAuthSession(session)
+      await Swal.fire({
+        icon: 'success',
+        title: isRegister ? 'Conta criada' : 'Sessao iniciada',
+        timer: 1400,
+        showConfirmButton: false,
+      })
+
+      return session
+    } catch (authError) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Falha na autenticacao',
+        text: getAxiosMessage(authError, 'Nao foi possivel autenticar.'),
+      })
+      return null
+    }
+  }
+
+  const ensureAuthenticated = async () => {
+    if (authToken) {
+      return true
+    }
+
+    const session = await handleAuth('login')
+    return Boolean(session?.token)
+  }
+
+  useEffect(() => {
+    if (!authToken) {
+      return
+    }
+
+    api.get('/auth/me')
+      .then((response) => {
+        saveAuthSession({ token: authToken, user: response.data.user })
+      })
+      .catch((authError) => {
+        if (axios.isAxiosError(authError) && authError.response?.status === 401) {
+          handleLogout()
+        }
+      })
+  }, [api, authToken])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,10 +187,10 @@ function App() {
           setError(
             fetchError.response?.data?.error ||
               fetchError.message ||
-              'Nao foi possivel conectar ao backend local.',
+              'Nao foi possivel conectar a API.',
           )
         } else {
-          setError(fetchError.message || 'Nao foi possivel conectar ao backend local.')
+          setError(fetchError.message || 'Nao foi possivel conectar a API.')
         }
       } finally {
         setLoading(false)
@@ -67,7 +198,7 @@ function App() {
     }
 
     fetchData()
-  }, [])
+  }, [api])
 
   const generoById = useMemo(() => {
     return generos.reduce((acc, genero) => {
@@ -217,12 +348,20 @@ function App() {
     })
   }, [filmes, generos])
 
-  const handleOpenEditModal = (movie) => {
+  const handleOpenEditModal = async (movie) => {
+    if (!(await ensureAuthenticated())) {
+      return
+    }
+
     setSelectedMovie(movie)
     setMovieModalMode('edit')
   }
 
-  const handleOpenCreateMovieModal = () => {
+  const handleOpenCreateMovieModal = async () => {
+    if (!(await ensureAuthenticated())) {
+      return
+    }
+
     setSelectedMovie(null)
     setMovieModalMode('create')
   }
@@ -236,13 +375,21 @@ function App() {
     setMovieModalMode(null)
   }
 
-  const handleOpenCreateGenreModal = () => {
+  const handleOpenCreateGenreModal = async () => {
+    if (!(await ensureAuthenticated())) {
+      return
+    }
+
     setSelectedGenre(null)
     setGenreModalMode('create')
     setIsGenreModalOpen(true)
   }
 
-  const handleOpenEditGenreModal = (genre) => {
+  const handleOpenEditGenreModal = async (genre) => {
+    if (!(await ensureAuthenticated())) {
+      return
+    }
+
     setSelectedGenre(genre)
     setGenreModalMode('edit')
     setIsGenreModalOpen(true)
@@ -259,6 +406,10 @@ function App() {
   }
 
   const handleUpdateMovie = async (payload) => {
+    if (!(await ensureAuthenticated())) {
+      return
+    }
+
     try {
       setIsSavingMovie(true)
       setError('')
@@ -299,6 +450,10 @@ function App() {
       return
     }
 
+    if (!(await ensureAuthenticated())) {
+      return
+    }
+
     const result = await Swal.fire({
       title: 'Confirmar exclusao?',
       text: `Deseja deletar "${movie.titulo}"?`,
@@ -335,6 +490,10 @@ function App() {
   }
 
   const handleSaveGenre = async (payload) => {
+    if (!(await ensureAuthenticated())) {
+      return
+    }
+
     try {
       setIsSavingGenre(true)
       setError('')
@@ -371,6 +530,10 @@ function App() {
 
   const handleDeleteGenre = async (genre) => {
     if (!genre) {
+      return
+    }
+
+    if (!(await ensureAuthenticated())) {
       return
     }
 
@@ -412,7 +575,12 @@ function App() {
   return (
     <>
       <BackGround />
-      <Header />
+      <Header
+        user={auth?.user}
+        onLogin={() => handleAuth('login')}
+        onRegister={() => handleAuth('register')}
+        onLogout={handleLogout}
+      />
 
       <main className="app-page container-xxl">
         <Routes>

@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import './Header.css'
 
-function Header() {
+function Header({ user, onLogin, onRegister, onLogout }) {
   return (
     <header className="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm app-navbar">
       <div className="container-xxl">
@@ -28,6 +28,27 @@ function Header() {
             Generos
           </NavLink>
         </nav>
+        <div className="app-auth-actions">
+          {user ? (
+            <>
+              <span className="app-auth-user" title={user.email}>
+                {user.nome}
+              </span>
+              <button type="button" className="btn btn-outline-light btn-sm" onClick={onLogout}>
+                Sair
+              </button>
+            </>
+          ) : (
+            <>
+              <button type="button" className="btn btn-outline-light btn-sm" onClick={onLogin}>
+                Entrar
+              </button>
+              <button type="button" className="btn btn-success btn-sm" onClick={onRegister}>
+                Criar conta
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </header>
   )
