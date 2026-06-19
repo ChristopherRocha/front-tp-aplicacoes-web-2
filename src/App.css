@@ -1,0 +1,229 @@
+.app-page {
+  padding: 96px 0 48px;
+  color: #ffffff;
+}
+
+:root {
+  --royal-purple: #6b2bd9;
+  --royal-purple-700: #5a23b5;
+  --royal-purple-200: rgba(107, 43, 217, 0.25);
+  --royal-purple-glow: rgba(107, 43, 217, 0.45);
+}
+
+.navbar-dark .navbar-nav .nav-link {
+  transition: color 0.18s ease;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link:focus,
+.navbar-dark .navbar-nav .nav-link.active {
+  color: var(--royal-purple) !important;
+}
+
+.navbar-dark {
+  border-bottom: 2px solid rgba(255, 255, 255, 0.85);
+}
+
+.btn-success,
+.btn-primary {
+  background-color: var(--royal-purple);
+  border-color: var(--royal-purple);
+}
+
+.btn-success:hover,
+.btn-success:focus,
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--royal-purple-700);
+  border-color: var(--royal-purple-700);
+}
+
+.btn-outline-secondary {
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+.genre-edit-btn {
+  color: #0f172a;
+  border-color: #0f172a;
+}
+
+.genre-edit-btn:hover,
+.genre-edit-btn:focus {
+  background-color: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+  border-color: #0f172a;
+}
+
+.badge.text-bg-success {
+  background-color: var(--royal-purple) !important;
+}
+
+@media (max-width: 991.98px) {
+  .app-page {
+    padding-top: 140px;
+  }
+}
+
+.status {
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 0;
+}
+
+.status-error {
+  color: #b91c1c;
+}
+
+.text-muted {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.movie-card {
+  width: 240px;
+  flex: 0 0 240px;
+  height: 480px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  will-change: transform;
+}
+
+.movie-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12), 0 0 0 2px var(--royal-purple-200),
+    0 0 16px var(--royal-purple-glow), inset 0 0 0 1px var(--royal-purple-200);
+  filter: drop-shadow(0 0 10px var(--royal-purple-glow));
+}
+
+.movie-card-image {
+  height: 280px;
+  object-fit: cover;
+}
+
+.movie-card-body {
+  height: 200px;
+  overflow: hidden;
+}
+
+.movie-card-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.movie-card-description {
+  margin-bottom: 0;
+  color: #0f172a;
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.movie-card .movie-card-description.text-muted {
+  color: #0f172a !important;
+}
+
+.modal-dialog {
+  max-width: 560px;
+  width: calc(100% - 32px);
+  margin: 0 auto;
+}
+
+.modal-content {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.modal-body .form-control,
+.modal-body .form-select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.carousel-window {
+  flex: 1;
+  min-width: 0;
+  max-width: calc(4 * 240px + 3 * 16px);
+  margin: 0;
+  overflow: hidden;
+}
+
+.carousel-row {
+  position: relative;
+  padding: 0 52px;
+  overflow: hidden;
+}
+
+.carousel-row .carousel-window {
+  max-width: none;
+  width: 100%;
+}
+
+.carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+.carousel-nav.prev {
+  left: 8px;
+}
+
+.carousel-nav.next {
+  right: 8px;
+}
+
+.carousel-track {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding-bottom: 6px;
+}
+
+.carousel-track::-webkit-scrollbar {
+  height: 8px;
+}
+
+.carousel-track::-webkit-scrollbar-thumb {
+  background: rgba(13, 110, 253, 0.35);
+  border-radius: 999px;
+}
+
+.icon-sm {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.genres-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  align-items: stretch;
+}
+
+.genre-cell {
+  min-width: 0;
+}
+
+.genres-grid .card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  will-change: transform;
+}
+
+.genres-grid .card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12), 0 0 0 2px var(--royal-purple-200),
+    0 0 16px var(--royal-purple-glow), inset 0 0 0 1px var(--royal-purple-200);
+  filter: drop-shadow(0 0 10px var(--royal-purple-glow));
+}
