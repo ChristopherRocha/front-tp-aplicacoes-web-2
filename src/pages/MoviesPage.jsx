@@ -1,59 +1,81 @@
 import MovieCard from '../components/MovieCard'
 
 function MoviesPage({
-  filmes,
+  jogos,
   loading,
   error,
   search,
+  isAuthenticated,
   onSearchChange,
   generoById,
   getImageUrl,
-  onCreateMovie,
-  onEditMovie,
-  onDeleteMovie,
-  deletingMovieId,
+  onCreateGame,
+  onOpenDetails,
+  onEditGame,
+  onDeleteGame,
+  deletingGameId,
+  canManageGame,
+  onLogin,
 }) {
-  return (
-    <section className="d-grid gap-3">
-      <div className="d-flex flex-wrap align-items-end justify-content-between gap-3">
-        <button type="button" className="btn btn-success" onClick={onCreateMovie}>
-          Adicionar filme
+  if (!isAuthenticated) {
+    return (
+      <section className="empty-state">
+        <h1>Entre para ver os jogos</h1>
+        <p>Sua conta libera o catalogo da comunidade.</p>
+        <button type="button" className="btn btn-primary" onClick={onLogin}>
+          Entrar
         </button>
+      </section>
+    )
+  }
 
-        <div className="d-grid gap-1">
-          <label className="form-label mb-0" htmlFor="movie-search">
-            Buscar
+  return (
+    <section className="games-page">
+      <div className="toolbar">
+        <div>
+          <h1>Jogos</h1>
+          <p>Catalogo compartilhado de jogos, notas e opinioes.</p>
+        </div>
+
+        <div className="toolbar-actions">
+          <label className="search-field" htmlFor="game-search">
+            <span>Buscar</span>
+            <input
+              id="game-search"
+              type="text"
+              className="form-control"
+              placeholder="Titulo, descricao ou genero"
+              value={search}
+              onChange={(event) => onSearchChange(event.target.value)}
+            />
           </label>
-          <input
-            id="movie-search"
-            type="text"
-            className="form-control"
-            placeholder="Digite um titulo"
-            value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-          />
+          <button type="button" className="btn btn-primary" onClick={onCreateGame}>
+            Adicionar jogo
+          </button>
         </div>
       </div>
 
-      {loading && <p className="status">Carregando filmes...</p>}
+      {loading && <p className="status">Carregando jogos...</p>}
 
       {!loading && error && <p className="status status-error">{error}</p>}
 
-      {!loading && !error && filmes.length === 0 && (
-        <p className="status">Nenhum filme encontrado.</p>
+      {!loading && !error && jogos.length === 0 && (
+        <p className="status">Nenhum jogo encontrado.</p>
       )}
 
-      {!loading && !error && filmes.length > 0 && (
-        <section className="d-flex flex-wrap gap-3" aria-label="Lista de filmes">
-          {filmes.map((filme) => (
+      {!loading && !error && jogos.length > 0 && (
+        <section className="games-grid" aria-label="Lista de jogos">
+          {jogos.map((jogo) => (
             <MovieCard
-              key={filme.id}
-              filme={filme}
-              generoDescricao={generoById[filme.generoId]}
-              imageUrl={getImageUrl(filme)}
-              onEdit={onEditMovie}
-              onDelete={onDeleteMovie}
-              isDeleting={deletingMovieId === filme.id}
+              key={jogo.id}
+              jogo={jogo}
+              generoDescricao={generoById[jogo.generoId]}
+              imageUrl={getImageUrl(jogo)}
+              onOpenDetails={onOpenDetails}
+              onEdit={onEditGame}
+              onDelete={onDeleteGame}
+              isDeleting={deletingGameId === jogo.id}
+              canManage={canManageGame(jogo)}
             />
           ))}
         </section>

@@ -35,7 +35,7 @@ function EditMovieModal({
   onClose,
   onSave,
   isSaving,
-  title = 'Atualizar filme',
+  title = 'Atualizar jogo',
   submitLabel = 'Salvar alteracoes',
 }) {
   if (!isOpen) {
@@ -181,7 +181,7 @@ function EditMovieModalContent({
 
                 {formData.isUrl ? (
                   <div>
-                    <label className="form-label">Foto (url ou caminho)</label>
+                    <label className="form-label">Capa (url ou caminho)</label>
                     <input
                       className="form-control"
                       name="foto"
@@ -192,7 +192,7 @@ function EditMovieModalContent({
                   </div>
                 ) : (
                   <div>
-                    <label className="form-label">Foto (arquivo)</label>
+                    <label className="form-label">Capa (arquivo)</label>
                     <input
                       className="form-control"
                       type="file"
