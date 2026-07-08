@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import './Header.css'
 
-function Header({ user, isAdmin, onLogin, onRegister, onLogout }) {
+function Header({ user, onLogin, onRegister, onLogout }) {
   return (
     <header className="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm app-navbar">
       <div className="container-xxl">
@@ -21,7 +21,7 @@ function Header({ user, isAdmin, onLogin, onRegister, onLogout }) {
           >
             Jogos
           </NavLink>
-          {isAdmin && (
+          {user && (
             <NavLink
               to="/generos"
               className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}

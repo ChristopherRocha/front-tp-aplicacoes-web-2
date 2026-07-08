@@ -194,7 +194,7 @@
 .section-heading,
 .toolbar {
   display: flex;
-  align-items: end;
+  align-items: center;
   justify-content: space-between;
   gap: 18px;
 }
@@ -228,14 +228,25 @@
 
 .toolbar-actions {
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   gap: 12px;
+}
+
+.toolbar > .btn,
+.toolbar-actions .btn {
+  min-height: 48px;
+  min-width: 154px;
+  white-space: nowrap;
 }
 
 .search-field {
   display: grid;
   gap: 6px;
-  min-width: min(320px, 100%);
+  min-width: min(400px, 100%);
+}
+
+.search-field .form-control {
+  min-height: 48px;
 }
 
 .search-field span {
@@ -672,6 +683,12 @@
   .toolbar-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .toolbar > .btn,
+  .toolbar-actions .btn {
+    min-width: 0;
+    width: 100%;
   }
 
   .auth-welcome-actions {

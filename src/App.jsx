@@ -26,6 +26,34 @@ const createApiClient = (token = '') => {
   })
 }
 
+const GAME_ENDPOINTS = ['/jogos', '/filmes']
+
+const isNotFound = (requestError) => {
+  return axios.isAxiosError(requestError) && requestError.response?.status === 404
+}
+
+const requestGameEndpoint = async (buildRequest) => {
+  let notFoundError = null
+
+  for (const endpoint of GAME_ENDPOINTS) {
+    try {
+      return await buildRequest(endpoint)
+    } catch (requestError) {
+      if (!isNotFound(requestError)) {
+        throw requestError
+      }
+
+      notFoundError = requestError
+    }
+  }
+
+  throw notFoundError
+}
+
+const requestGameSubresource = async (jogoId, suffix, buildRequest) => {
+  return requestGameEndpoint((endpoint) => buildRequest(`${endpoint}/${jogoId}${suffix}`))
+}
+
 function App() {
   const [auth, setAuth] = useState(() => {
     try {
@@ -118,7 +146,10 @@ function App() {
       confirmButtonText: isRegister ? 'Criar conta' : 'Entrar',
       denyButtonText: isRegister ? 'Ja tenho conta' : 'Criar conta',
       cancelButtonText: 'Cancelar',
-      preConfirm: () => {
+      showLoaderOnConfirm: true,
+      allowOutsideClick: () => !Swal.isLoading(),
+      allowEscapeKey: () => !Swal.isLoading(),
+      preConfirm: async () => {
         const nome = document.getElementById('auth-name')?.value.trim()
         const email = document.getElementById('auth-email')?.value.trim()
         const password = document.getElementById('auth-password')?.value
@@ -139,7 +170,23 @@ function App() {
           return false
         }
 
-        return isRegister ? { nome, email, password, isAdmin: isAdminUser } : { email, password }
+        const payload = isRegister ? { nome, email, password, isAdmin: isAdminUser } : { email, password }
+
+        try {
+          const response = await axios.post(
+            `${API_BASE_URL}/auth/${isRegister ? 'register' : 'login'}`,
+            payload,
+            { headers: { 'Content-Type': 'application/json' } },
+          )
+
+          return {
+            token: response.data.token,
+            user: response.data.user,
+          }
+        } catch (authError) {
+          Swal.showValidationMessage(getAxiosMessage(authError, 'Nao foi possivel autenticar.'))
+          return false
+        }
       },
     })
 
@@ -151,34 +198,16 @@ function App() {
       return null
     }
 
-    try {
-      const response = await axios.post(
-        `${API_BASE_URL}/auth/${isRegister ? 'register' : 'login'}`,
-        result.value,
-        { headers: { 'Content-Type': 'application/json' } },
-      )
-      const session = {
-        token: response.data.token,
-        user: response.data.user,
-      }
+    const session = saveAuthSession(result.value)
 
-      saveAuthSession(session)
-      await Swal.fire({
-        icon: 'success',
-        title: isRegister ? 'Conta criada' : 'Sessao iniciada',
-        timer: 1400,
-        showConfirmButton: false,
-      })
+    await Swal.fire({
+      icon: 'success',
+      title: isRegister ? 'Conta criada' : 'Sessao iniciada',
+      timer: 1200,
+      showConfirmButton: false,
+    })
 
-      return session
-    } catch (authError) {
-      await Swal.fire({
-        icon: 'error',
-        title: 'Falha na autenticacao',
-        text: getAxiosMessage(authError, 'Nao foi possivel autenticar.'),
-      })
-      return null
-    }
+    return session
   }
 
   const ensureAuthenticated = async () => {
@@ -268,7 +297,7 @@ function App() {
         setError('')
 
         const [jogosResponse, generosResponse] = await Promise.all([
-          api.get('/jogos'),
+          requestGameEndpoint((endpoint) => api.get(endpoint)),
           api.get('/generos'),
         ])
 
@@ -564,11 +593,13 @@ function App() {
       let savedGame
 
       if (gameModalMode === 'create') {
-        const response = await client.post('/jogos', payload)
+        const response = await requestGameEndpoint((endpoint) => client.post(endpoint, payload))
         savedGame = response.data
         setJogos((prev) => [savedGame, ...prev])
       } else if (selectedGame) {
-        const response = await client.put(`/jogos/${selectedGame.id}`, payload)
+        const response = await requestGameEndpoint((endpoint) =>
+          client.put(`${endpoint}/${selectedGame.id}`, payload),
+        )
         savedGame = response.data
         mergeGameIntoState(savedGame)
       }
@@ -610,7 +641,7 @@ function App() {
       setDeletingGameId(jogo.id)
       setError('')
 
-      await client.delete(`/jogos/${jogo.id}`)
+      await requestGameEndpoint((endpoint) => client.delete(`${endpoint}/${jogo.id}`))
 
       setJogos((prev) => prev.filter((item) => item.id !== jogo.id))
       setDetailsGame((prev) => (prev?.id === jogo.id ? null : prev))
@@ -697,7 +728,7 @@ function App() {
       setCommentsLoading(true)
       setCommentsError('')
 
-      const response = await client.get(`/jogos/${gameId}/comentarios`)
+      const response = await requestGameSubresource(gameId, '/comentarios', (url) => client.get(url))
       setComments(Array.isArray(response.data) ? response.data : [])
     } catch (commentsRequestError) {
       setCommentsError(getAxiosMessage(commentsRequestError, 'Erro ao carregar comentarios.'))
@@ -744,7 +775,9 @@ function App() {
       setIsSavingRating(true)
       setCommentsError('')
 
-      const response = await client.put(`/jogos/${jogo.id}/avaliacao`, { nota })
+      const response = await requestGameSubresource(jogo.id, '/avaliacao', (url) =>
+        client.put(url, { nota }),
+      )
       mergeGameIntoState(response.data)
     } catch (ratingError) {
       setCommentsError(getAxiosMessage(ratingError, 'Erro ao salvar avaliacao.'))
@@ -768,7 +801,7 @@ function App() {
       setIsSavingRating(true)
       setCommentsError('')
 
-      const response = await client.delete(`/jogos/${jogo.id}/avaliacao`)
+      const response = await requestGameSubresource(jogo.id, '/avaliacao', (url) => client.delete(url))
       mergeGameIntoState(response.data)
     } catch (ratingError) {
       setCommentsError(getAxiosMessage(ratingError, 'Erro ao remover avaliacao.'))
@@ -792,7 +825,9 @@ function App() {
       setIsSavingComment(true)
       setCommentsError('')
 
-      const response = await client.post(`/jogos/${jogo.id}/comentarios`, { texto })
+      const response = await requestGameSubresource(jogo.id, '/comentarios', (url) =>
+        client.post(url, { texto }),
+      )
       setComments((prev) => [response.data, ...prev])
       updateGameCount(jogo.id, 'comentariosCount', 1)
     } catch (commentError) {
@@ -817,7 +852,9 @@ function App() {
       setCommentActionId(comment.id)
       setCommentsError('')
 
-      const response = await client.put(`/jogos/${jogo.id}/comentarios/${comment.id}`, { texto })
+      const response = await requestGameSubresource(jogo.id, `/comentarios/${comment.id}`, (url) =>
+        client.put(url, { texto }),
+      )
       setComments((prev) => prev.map((item) => (item.id === comment.id ? response.data : item)))
     } catch (commentError) {
       setCommentsError(getAxiosMessage(commentError, 'Erro ao atualizar comentario.'))
@@ -853,7 +890,7 @@ function App() {
       setCommentActionId(comment.id)
       setCommentsError('')
 
-      await client.delete(`/jogos/${jogo.id}/comentarios/${comment.id}`)
+      await requestGameSubresource(jogo.id, `/comentarios/${comment.id}`, (url) => client.delete(url))
       setComments((prev) => prev.filter((item) => item.id !== comment.id))
       updateGameCount(jogo.id, 'comentariosCount', -1)
     } catch (commentError) {

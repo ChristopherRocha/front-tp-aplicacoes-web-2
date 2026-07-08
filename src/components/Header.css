@@ -12,14 +12,16 @@
 
 .app-navbar-list {
   font-size: 1rem;
-  gap: 2rem;
-  margin-right: 1.5rem;
+  gap: 1.5rem;
+  margin-right: 1.25rem;
+  white-space: nowrap;
 }
 
 .app-auth-actions {
   align-items: center;
   display: flex;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .app-auth-user {
