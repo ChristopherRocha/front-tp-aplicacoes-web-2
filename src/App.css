@@ -191,8 +191,7 @@
   gap: 14px;
 }
 
-.section-heading,
-.toolbar {
+.section-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -219,7 +218,16 @@
 }
 
 .toolbar {
+  align-items: center;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 620px);
   padding: 22px;
+  overflow: hidden;
+}
+
+.toolbar > div:first-child {
+  min-width: 0;
 }
 
 .toolbar h1 {
@@ -227,22 +235,27 @@
 }
 
 .toolbar-actions {
-  display: flex;
+  display: grid;
   align-items: flex-end;
+  grid-template-columns: minmax(0, 1fr) max-content;
   gap: 12px;
+  min-width: 0;
+  width: 100%;
 }
 
 .toolbar > .btn,
 .toolbar-actions .btn {
+  justify-self: end;
   min-height: 48px;
-  min-width: 154px;
+  min-width: 150px;
   white-space: nowrap;
 }
 
 .search-field {
   display: grid;
   gap: 6px;
-  min-width: min(400px, 100%);
+  min-width: 0;
+  width: 100%;
 }
 
 .search-field .form-control {
@@ -678,15 +691,23 @@
     grid-template-columns: 1fr;
   }
 
-  .section-heading,
-  .toolbar,
-  .toolbar-actions {
+  .section-heading {
     align-items: stretch;
     flex-direction: column;
   }
 
+  .toolbar,
+  .toolbar-actions {
+    align-items: stretch;
+  }
+
+  .toolbar-actions {
+    grid-template-columns: 1fr;
+  }
+
   .toolbar > .btn,
   .toolbar-actions .btn {
+    justify-self: stretch;
     min-width: 0;
     width: 100%;
   }
