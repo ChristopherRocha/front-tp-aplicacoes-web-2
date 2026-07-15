@@ -13,7 +13,6 @@ function GenresPage({
       <div className="toolbar">
         <div>
           <h1>Generos</h1>
-          <p>Taxonomia usada no catalogo de jogos.</p>
         </div>
         <button type="button" className="btn btn-primary" onClick={onCreateGenre}>
           Adicionar genero
